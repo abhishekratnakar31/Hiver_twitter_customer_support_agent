@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/raw/
+*.csv
+!reports/brand_statistics.csv
+!data/processed/sample_conversations.csv
+!data/golden/*.csv
+models/
+indexes/
+.env

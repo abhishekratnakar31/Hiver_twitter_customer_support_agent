@@ -1,0 +1,10 @@
+project:
+  name: "hiver-support-agent"
+  target_brand: "AmazonHelp"
+  seed: 42
+
+data:
+  raw_path: "data/raw/twcs.csv"
+  processed_dir: "data/processed"
+  reports_dir: "reports"
+  sample_size: 50000
