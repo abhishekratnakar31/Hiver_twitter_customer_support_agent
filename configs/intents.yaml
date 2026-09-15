@@ -1,0 +1,211 @@
+# Status: [FROZEN - PHASE 4]
+intents:
+- intent_id: order_tracking_delivery
+  name: Order Tracking & Delivery Status
+  description: Inquiries regarding package shipping status, tracking numbers, estimated
+    delivery dates, transit delays, or location updates.
+  inclusion_criteria:
+  - Asking where order/package is located
+  - Requesting tracking number or shipping status updates
+  - Inquiring about late or delayed deliveries before arrival
+  exclusion_criteria:
+  - Reports of missing/stolen packages marked as delivered (use package_missing_damaged)
+  - Address change requests (use cancellation_modification)
+  default_risk: low
+  examples:
+  - '[Real Tweet Excerpt]: . Item has not been delivered but tracking says it was
+    handed to me over an hour ago... 2nd time this has happened. Sort it out https://t.co/42W82GcARk'
+  - '[Real Tweet Excerpt]: Where is my order? https://t.co/pXnKSCo2ex'
+  - '[Real Tweet Excerpt]: HEY, I have 30 packages that need to be refunded on nov
+    5th which is the estimated shipping time. fake tracking. never shipped.'
+- intent_id: package_missing_damaged
+  name: Missing, Stolen, or Damaged Items
+  description: Reports of packages marked delivered but not received, stolen items,
+    broken goods, missing components, or incorrect items delivered.
+  inclusion_criteria:
+  - Tracking says delivered but package is missing or left at wrong address
+  - Received damaged, broken, or defective item
+  - Missing items from multi-item order shipment
+  - Received wrong item or size
+  exclusion_criteria:
+  - General transit delays before scheduled delivery time (use order_tracking_delivery)
+  - Refund requests for returned items (use refund_return_processing)
+  default_risk: medium
+  examples:
+  - '[Real Tweet Excerpt]: Is it possible to prevent AMZL from delivering my packages
+    moving forward? Stuff is either lost/stolen/broken EVERY time.'
+  - '[Real Tweet Excerpt]: What the hell ?! This boxed is beyond damaged. I wanted
+    a new one! https://t.co/J36cokDm6l'
+  - '[Real Tweet Excerpt]: This is quality of the grinder that was delivered just
+    now.Broken grinder stone and scratched product all over.Mere refnd engh??? https://t.co/FyCq2DSjnE'
+- intent_id: refund_return_processing
+  name: Refund & Return Processing
+  description: Requests to initiate returns, check refund status, request prepaid
+    return labels, or inquire about refund drop-off locations.
+  inclusion_criteria:
+  - Asking how to return an item
+  - Checking status of a pending refund
+  - Requesting return shipping label or barcode
+  - Inquiring about refund processing timeframe
+  exclusion_criteria:
+  - Reporting damaged item upon arrival (use package_missing_damaged)
+  - Unauthorized credit card charges (use payment_billing_issues)
+  default_risk: low
+  examples:
+  - '[Real Tweet Excerpt]: UPS supposed to pick up a return package yesterday and
+    bring return label... never showed.'
+  - '[Real Tweet Excerpt]: That''s what m doing n u making me believe more that refund
+    policy by Amazon in India is really poor..! Ur seller is even not taking calls
+    nw'
+  - '[Real Tweet Excerpt]: Last mail rec''d on 09.10.2017 stating refund will be in
+    my account by 14.10.2017 Bt same not rec''d.'
+- intent_id: cancellation_modification
+  name: Order Cancellation & Change Requests
+  description: Requests to cancel an active order before shipment, modify order items,
+    change shipping addresses, or update delivery speed.
+  inclusion_criteria:
+  - Requesting to cancel an order immediately
+  - Changing shipping address on a recent purchase
+  - Modifying item quantities or order specifications
+  exclusion_criteria:
+  - Returning an item that has already been shipped or delivered (use refund_return_processing)
+  default_risk: medium
+  examples:
+  - "[Real Tweet Excerpt]: how do I cancel my amazon prime account? I don\u2019t use\
+    \ it anymore as no longer need it."
+  - '[Real Tweet Excerpt]: If I cancel my prime membership early do I get some money
+    refunded?'
+  - '[Real Tweet Excerpt]: I got an order cancellation notification for a cancellation
+    I did not do. I even got a refund. Can u pls tell me what''s going on?'
+- intent_id: prime_subscription_membership
+  name: Prime Membership & Subscription Services
+  description: Inquiries regarding Prime membership fees, benefits, automatic renewals,
+    trial cancellations, student discounts, or Prime Video access.
+  inclusion_criteria:
+  - Inquiring about Prime membership charges or auto-renewal
+  - Requesting Prime subscription cancellation
+  - Questions about Prime Video, Music, or Student benefits
+  exclusion_criteria:
+  - Digital content playback errors or streaming app crashes (use digital_technical_support)
+  default_risk: low
+  examples:
+  - '[Real Tweet Excerpt]: hey I started a Amazon prime trial..i was charged $1..wats
+    that about ?'
+  - '[Real Tweet Excerpt]: If I cancel my prime membership early do I get some money
+    refunded?'
+  - '[Real Tweet Excerpt]: ive signed up to prime student about a week ago with 6
+    months free so why is it saying theres a problem with my card? https://t.co/EvBkqR1APB'
+- intent_id: payment_billing_issues
+  name: Payment, Charges & Billing Disputes
+  description: Inquiries about unrecognized charges, declined payment methods, promo
+    codes, gift cards, invoice requests, or double billing.
+  inclusion_criteria:
+  - Disputing double or unexpected charges on credit card
+  - Fixing declined payment methods or card authorization issues
+  - Applying gift cards, promotional codes, or balance issues
+  exclusion_criteria:
+  - Refund inquiries for returned items (use refund_return_processing)
+  - Prime auto-renewal fee questions (use prime_subscription_membership)
+  default_risk: medium
+  examples:
+  - '[Real Tweet Excerpt]: did the sonos play:1 promo end? I thought tomorrow was
+    last day. Your site is not accepting the promo code. Please advise!'
+  - '[Real Tweet Excerpt]: I spoke to a nice lady about the double charge. She said
+    it was an automatic repayment set on my account. This lady took it off but . .
+    .'
+  - '[Real Tweet Excerpt]: I''m trying to use the Echo 3 pack for, but I am unable
+    to use the promo code https://t.co/SVPZcVCv4F'
+- intent_id: digital_technical_support
+  name: Digital Content & Technical Support
+  description: Issues accessing Kindle ebooks, Prime Video streaming errors, Fire
+    TV hardware/app crashes, Alexa/echo device setup, or digital code redemption.
+  inclusion_criteria:
+  - Prime Video buffering or error codes
+  - Kindle book purchase not showing up on device
+  - Fire TV app crashing or audio sync problems
+  - Redeeming digital gift codes or software keys
+  exclusion_criteria:
+  - Physical hardware damage shipped in box (use package_missing_damaged)
+  default_risk: low
+  examples:
+  - "[Real Tweet Excerpt]: Huge thank you to \U0001F601 my new remote for my Firestick\
+    \ \u2764 arrived...it worked and I'm back in business #HappyWeeyin"
+  - '[Real Tweet Excerpt]: firestick remote voice control works only for prime video
+    but not inside other apps- like . Not efficient'
+  - "[Real Tweet Excerpt]: \u5B9F\u5BB6\u306B\u5E30\u3063\u305F\u3089Amazon Fire TV\u304C\
+    \u751F\u3048\u3066\u3066\u30AC\u30EB\u30D1\u30F3\u898B\u653E\u984C\u306B\u306A\
+    \u3063\u3066\u305F"
+- intent_id: account_security_access
+  name: Account Access, Security & Verification
+  description: Issues logging into accounts, forgotten passwords, 2-factor authentication
+    (2FA) locks, suspicious activity, or account suspensions.
+  inclusion_criteria:
+  - Unable to log into Amazon account
+  - 2FA verification code not received or locked out
+  - Reporting unauthorized login attempts or compromised account
+  - Password reset link not working
+  exclusion_criteria:
+  - Updating default shipping address (use cancellation_modification)
+  - Billing disputes (use payment_billing_issues)
+  default_risk: high
+  examples:
+  - '[Real Tweet Excerpt]: Yes, but I am not receiving access codes. I cannot login
+    to the Hub website to check my data.'
+  - '[Real Tweet Excerpt]: Still waiting for the password reset maybe by #cybermonday
+    https://t.co/4hX6ZAHHZi'
+  - '[Real Tweet Excerpt]: I can''t sign on to my account. When I ask for a password
+    reset no email comes with a code. Help!!'
+- intent_id: product_inquiry_availability
+  name: Product Inquiries & Stock Availability
+  description: Questions about product specifications, restock dates, compatibility,
+    warranty details, or seller authorization.
+  inclusion_criteria:
+  - Asking when an item will be back in stock
+  - Inquiring about item dimensions, features, or compatibility
+  - Manufacturer warranty terms and seller contact info
+  exclusion_criteria:
+  - Technical troubleshooting for purchased digital/hardware devices (use digital_technical_support)
+  default_risk: low
+  examples:
+  - '[Real Tweet Excerpt]: Why don''t u share tracking details. You have added Seller
+    with half info. You don''t have seller contact num'
+  - '[Real Tweet Excerpt]: So now you have back in stock but you don''t bother to
+    fulfil my subscribe and save? Utter c**p.'
+  - '[Real Tweet Excerpt]: Hi, will these Avril Lavigne''s colored vinyls be back
+    in stock on Amazon Germany soon? I wanna buy them https://t.co/kZWsbyMA0W'
+- intent_id: feedback_general_complaint
+  name: General Feedback & Service Complaints
+  description: General customer feedback regarding customer service experiences, driver
+    behavior, website features, or policy complaints.
+  inclusion_criteria:
+  - Complaining about poor customer support experience
+  - Feedback on delivery driver conduct or packaging material
+  - General policy suggestions or feature complaints
+  exclusion_criteria:
+  - Actionable requests for specific missing package resolution (use package_missing_damaged)
+  default_risk: low
+  examples:
+  - "[Real Tweet Excerpt]: why do you continue to use I don\u2019t get my items! How\
+    \ can \u201Cthe door\u201D sign for a package! Terrible service!"
+  - '[Real Tweet Excerpt]: ORDR# 406-8734146-2073128 not delivrd on time. contacted
+    4 persons yet no response or confirmation. terrible service.'
+  - '[Real Tweet Excerpt]: Glitches in app, rude representatives and faulty products..
+    Is still reliable? https://t.co/a85TUkBNMw'
+- intent_id: other_unclear
+  name: Other / Ambiguous Inquiries
+  description: Fragmented tweets, ambiguous requests lacking context, greetings without
+    questions, or requests outside customer support scope.
+  inclusion_criteria:
+  - One-word or vague messages like 'Help', 'Hello', 'DM sent'
+  - Non-support social media mentions or chatter
+  - Inquiries lacking sufficient information to classify into primary taxonomy
+  exclusion_criteria:
+  - Any query with sufficient actionable evidence matching primary domain intents
+  default_risk: low
+  examples:
+  - '[Real Tweet Excerpt]: Hello Don''t send a special edition game like this in just
+    a cardboard sleeve. It clearly got crushed b/c bad packaging. https://t.co/zoEmj23Hh5'
+  - '[Real Tweet Excerpt]: Hi there, still no response from anyone!'
+  - '[Real Tweet Excerpt]: - Hi there, I contacted the store 4 business days ago but
+    have not heard back. Is there a help email at amazon? I can''t make a A-Z claim
+    at this time.'

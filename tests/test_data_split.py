@@ -81,9 +81,13 @@ def test_split_reproducibility(sample_raw_df):
 
 
 def test_run_pipeline_demo_mode():
-    run_pipeline(mode="demo", seed=42)
-    assert os.path.exists("data/processed/train.csv")
-    assert os.path.exists("data/processed/validation.csv")
-    assert os.path.exists("data/processed/test.csv")
-    assert os.path.exists("data/processed/full_split_summary.json")
-    assert os.path.exists("reports/data_split.md")
+    try:
+        run_pipeline(mode="demo", seed=42)
+        assert os.path.exists("data/processed/train.csv")
+        assert os.path.exists("data/processed/validation.csv")
+        assert os.path.exists("data/processed/test.csv")
+        assert os.path.exists("data/processed/full_split_summary.json")
+        assert os.path.exists("reports/data_split.md")
+    finally:
+        # Restore real mode data split to prevent test pollution
+        run_pipeline(mode="real", seed=42)
