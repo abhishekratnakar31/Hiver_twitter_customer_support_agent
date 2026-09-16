@@ -17,6 +17,8 @@ os.environ["LOKY_MAX_CPU_COUNT"] = "1"
 os.environ["JOBLIB_MULTIPROCESSING"] = "0"
 os.environ["TQDM_DISABLE"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["OMP_NUM_THREADS"] = "1"
 
 # Suppress Python 3.14 resource tracker process exit on macOS
 try:
@@ -28,9 +30,10 @@ except Exception:
 from pathlib import Path
 from typing import Dict, Any
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 # Ensure root directory is on Python path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -45,6 +48,8 @@ from src.api.schemas import (
     MetricsResponse
 )
 from src.monitoring.logger import OperationalTelemetryLogger
+from src.monitoring.prometheus_exporter import LightweightPrometheusExporter
+
 
 
 # Instantiate FastAPI Application
@@ -63,19 +68,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Dashboard Static Files
+web_dir = BASE_DIR / "web"
+if web_dir.exists():
+    app.mount("/dashboard", StaticFiles(directory=str(web_dir), html=True), name="dashboard")
+
+@app.get("/", include_in_schema=False)
+def root_redirect():
+    return RedirectResponse(url="/dashboard")
+
 # Global Agent & Telemetry Logger Instances
 agent: TwitterSupportAgent = None
 telemetry_logger = OperationalTelemetryLogger(log_file_path=str(BASE_DIR / "logs" / "agent_operations.jsonl"))
+prometheus_exporter = LightweightPrometheusExporter()
 
 
 def get_agent() -> TwitterSupportAgent:
-    """Returns singleton TwitterSupportAgent instance, loading from models/ if needed."""
+    """Returns singleton TwitterSupportAgent instance, enabling real LLM generation if API keys are present."""
     global agent
     if agent is None:
         models_dir = BASE_DIR / "models"
+        has_api_key = bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY"))
+        force_mock = os.environ.get("MOCK_LLM", "0") == "1"
+        use_mock = force_mock or (not has_api_key)
+
         try:
-            agent = TwitterSupportAgent.load_from_models_dir(models_dir=models_dir, mock_llm=True)
-            print(f"[FastAPI Server] TwitterSupportAgent loaded successfully from {models_dir}.")
+            agent = TwitterSupportAgent.load_from_models_dir(models_dir=models_dir, mock_llm=use_mock)
+            mode_str = "Mock Mode" if use_mock else "LIVE LLM API Mode"
+            print(f"[FastAPI Server] TwitterSupportAgent loaded successfully ({mode_str}) from {models_dir}.")
         except Exception as e:
             print(f"[FastAPI Server Warning] Could not load from {models_dir}: {e}")
             agent = TwitterSupportAgent()
@@ -98,7 +118,10 @@ def get_health() -> HealthResponse:
     classifier_loaded = agent_inst.classifier is not None if agent_inst else False
     retriever_loaded = agent_inst.retriever is not None if agent_inst else False
     index_items = agent_inst.retriever.index.ntotal if (agent_inst and agent_inst.retriever and agent_inst.retriever.index) else 0
-    provider_mode = "mock"
+
+    has_api_key = bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY"))
+    is_mock = agent_inst.generator.mock_mode if (agent_inst and agent_inst.generator) else True
+    provider_mode = "mock" if is_mock else ("gemini" if os.environ.get("GEMINI_API_KEY") else "openai")
 
     return HealthResponse(
         status="healthy" if classifier_loaded and retriever_loaded else "degraded",
@@ -106,8 +129,9 @@ def get_health() -> HealthResponse:
         retriever_loaded=retriever_loaded,
         index_items=index_items,
         generator_provider=provider_mode,
-        live_llm_available=False  # Explicitly documents live LLM benchmark testing as pending
+        live_llm_available=has_api_key
     )
+
 
 
 @app.get("/api/v1/metrics", response_model=MetricsResponse)
@@ -120,6 +144,18 @@ def get_metrics() -> MetricsResponse:
     return MetricsResponse(**metrics)
 
 
+@app.get("/metrics")
+def get_prometheus_metrics():
+    """
+    Exposes plain-text Prometheus metrics endpoint.
+    Format: text/plain; version=0.0.4
+    """
+    return Response(
+        content=prometheus_exporter.generate_metrics_text(),
+        media_type="text/plain; version=0.0.4"
+    )
+
+
 @app.post("/api/v1/inquire", response_model=InquiryResponse)
 def process_inquiry(payload: InquiryRequest) -> InquiryResponse:
     """
@@ -128,7 +164,7 @@ def process_inquiry(payload: InquiryRequest) -> InquiryResponse:
     2. Top-3 RAG FAISS Vector Retrieval
     3. Multi-Factor Escalation Policy Triage
     4. Response Generation (if AUTO) or Pre-Generation Halt (if ESCALATE)
-    5. Telemetry JSONL Audit Logging
+    5. Telemetry JSONL Audit Logging & Prometheus Metric Recording
     """
     agent_inst = get_agent()
     if not agent_inst:
@@ -147,14 +183,25 @@ def process_inquiry(payload: InquiryRequest) -> InquiryResponse:
     # Process inquiry end-to-end
     result = agent_inst.process_inquiry(
         customer_message=customer_msg,
-        interaction_id=payload.interaction_id
+        interaction_id=payload.interaction_id,
+        conversation_id=payload.conversation_id,
+        conversation_history=payload.conversation_history
     )
 
     # Log operational telemetry
     telemetry_logger.log_inquiry(result, provider_mode="mock")
 
-    # Format retrieved evidence items
-    retrieved_docs = agent_inst.retriever.retrieve(customer_msg, k=3) if agent_inst.retriever else []
+    # Record Prometheus metric
+    prometheus_exporter.record_inquiry(
+        action=result.get("decision", "ESCALATE"),
+        confidence=float(result.get("intent_confidence", 0.0)),
+        evidence_count=int(result.get("retrieval_top_k", 0))
+    )
+
+
+    # Format retrieved evidence items evaluated on query_context_used
+    query_context = result.get("query_context_used", customer_msg)
+    retrieved_docs = agent_inst.retriever.retrieve(query_context, k=3) if agent_inst.retriever else []
     evidence_items = [
         EvidenceItem(
             interaction_id=doc["interaction_id"],
@@ -167,7 +214,9 @@ def process_inquiry(payload: InquiryRequest) -> InquiryResponse:
 
     return InquiryResponse(
         interaction_id=result["interaction_id"],
+        conversation_id=result.get("conversation_id"),
         customer_message=result["customer_message"],
+        query_context_used=result.get("query_context_used"),
         predicted_intent=result["predicted_intent"],
         intent_confidence=float(result["intent_confidence"]),
         retrieval_top_k=int(result["retrieval_top_k"]),

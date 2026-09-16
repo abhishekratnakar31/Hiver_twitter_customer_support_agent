@@ -1,0 +1,55 @@
+name: CI & Docker Verification Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build:
+    name: Test, Containerize & Verify Health
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest suite
+        env:
+          TOKENIZERS_PARALLELISM: "false"
+          LOKY_MAX_CPU_COUNT: "1"
+          OMP_NUM_THREADS: "1"
+          KMP_DUPLICATE_LIB_OK: "TRUE"
+        run: |
+          pytest tests/
+
+      - name: Build Docker image
+        run: |
+          docker build -t hiver-agent:latest .
+
+      - name: Run Docker container
+        run: |
+          docker run -d --name agent-container -p 8000:8000 hiver-agent:latest
+          sleep 5
+
+      - name: Verify Container Health Endpoint
+        run: |
+          curl --fail http://localhost:8000/api/v1/health || (docker logs agent-container && exit 1)
+
+      - name: Stop and cleanup container
+        if: always()
+        run: |
+          docker stop agent-container || true
+          docker rm agent-container || true

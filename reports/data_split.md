@@ -1,24 +1,24 @@
 # Phase 2: Conversation Construction & Data Splitting Report
 
 ## Execution Metadata
-- **Execution Mode**: `REAL`
+- **Execution Mode**: `DEMO`
 - **Random Seed**: `42`
-- **Source File**: `data/raw/twcs.csv`
-- **Processed Target Directory**: `data/processed`
+- **Source File**: `data/raw/twcs_demo.csv`
+- **Processed Target Directory**: `/private/var/folders/43/skj2qk7x5rb85vwhdbt4qwhc0000gn/T/pytest-of-abhishekratnakar/pytest-28/test_run_pipeline_demo_mode0/processed`
 
 ---
 
 ## 1. Quality Filtering Breakdown
 
-Out of **2,811,774 raw dataset tweets** across the entire TWCS corpus:
-- **Total AmazonHelp Outbound Responses**: 169,840
-- **Missing Parent Link (`in_response_to_tweet_id`)**: 553
-- **Orphan Parent Tweets (Missing from dataset)**: 464
-- **Non-Inbound Parent Tweets**: 9
-- **Total Reconstructed Interaction Pairs (Raw)**: 168,814
+Out of **6 raw dataset tweets** across the entire TWCS corpus:
+- **Total AmazonHelp Outbound Responses**: 2
+- **Missing Parent Link (`in_response_to_tweet_id`)**: 0
+- **Orphan Parent Tweets (Missing from dataset)**: 0
+- **Non-Inbound Parent Tweets**: 0
+- **Total Reconstructed Interaction Pairs (Raw)**: 2
 - **Empty / Whitespace Text Filtered**: 0
 - **Exact Duplicate Interactions Filtered**: 0
-- **Final Clean Eligible Interactions**: **168,814** (82,623 unique conversation threads)
+- **Final Clean Eligible Interactions**: **2** (2 unique conversation threads)
 
 ---
 
@@ -29,10 +29,10 @@ To guarantee zero data leakage between training and evaluation, partitioning occ
 ### Full Population Partition Sizes (Authoritative Boundaries):
 | Partition | Conversation Count | Conversation % | Interaction Count | Interaction % |
 | :--- | :--- | :--- | :--- | :--- |
-| **Full Train Partition** | 57,836 | 70.0% | 117,802 | 69.8% |
-| **Full Validation Partition** | 12,393 | 15.0% | 25,312 | 15.0% |
-| **Full Test Partition** | 12,394 | 15.0% | 25,700 | 15.2% |
-| **Total Population** | **82,623** | **100.0%** | **168,814** | **100.0%** |
+| **Full Train Partition** | 1 | 70.0% | 1 | 50.0% |
+| **Full Validation Partition** | 0 | 15.0% | 0 | 0.0% |
+| **Full Test Partition** | 1 | 15.0% | 1 | 50.0% |
+| **Total Population** | **2** | **100.0%** | **2** | **100.0%** |
 
 ---
 
@@ -42,10 +42,10 @@ Within each authoritative partition, complete conversations were sampled to cons
 
 | Working Subset File | Sampled Conversations | Interaction Count | Purpose |
 | :--- | :--- | :--- | :--- |
-| `data/processed/train.csv` | 17,097 | **35,000** | Baseline ML & Embedding Classifier Training |
-| `data/processed/validation.csv` | 3,657 | **7,503** | Hyperparameter Tuning & Threshold Calibration |
-| `data/processed/test.csv` | 3,653 | **7,500** | Unlabelled Test Pool for Automated Metrics |
-| **Total Working Subset** | **24,407** | **50,003** | Fast Experimentation Suite |
+| `data/processed/train.csv` | 1 | **1** | Baseline ML & Embedding Classifier Training |
+| `data/processed/validation.csv` | 0 | **0** | Hyperparameter Tuning & Threshold Calibration |
+| `data/processed/test.csv` | 1 | **1** | Unlabelled Test Pool for Automated Metrics |
+| **Total Working Subset** | **2** | **2** | Fast Experimentation Suite |
 
 ---
 
@@ -55,12 +55,12 @@ Sampling is performed at the conversation level, preserving whole multi-turn thr
 
 | Partition / Subset | Total Convs | 2-Turn Convs (%) | 3-Turn Convs (%) | 4+ Turn Convs (%) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Full Train Partition** | 57,836 | 77.24% | 11.42% | 11.33% |
-| **Working Train Subset** | 17,097 | 77.11% | 11.45% | 11.45% |
-| **Full Val Partition** | 12,393 | 77.64% | 10.73% | 11.63% |
-| **Working Val Subset** | 3,657 | 77.47% | 10.75% | 11.79% |
-| **Full Test Partition** | 12,394 | 76.71% | 11.57% | 11.72% |
-| **Working Test Subset** | 3,653 | 77.11% | 11.42% | 11.47% |
+| **Full Train Partition** | 1 | 100.0% | 0.0% | 0.0% |
+| **Working Train Subset** | 1 | 100.0% | 0.0% | 0.0% |
+| **Full Val Partition** | 0 | 0.0% | 0.0% | 0.0% |
+| **Working Val Subset** | 0 | 0.0% | 0.0% | 0.0% |
+| **Full Test Partition** | 1 | 100.0% | 0.0% | 0.0% |
+| **Working Test Subset** | 1 | 100.0% | 0.0% | 0.0% |
 
 ---
 

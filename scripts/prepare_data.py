@@ -11,7 +11,7 @@ from src.data.download import get_twcs_dataset_path
 from src.data.conversations import reconstruct_and_filter_interactions, split_conversations_partition_first
 
 
-def run_pipeline(mode: str = "real", seed: int = 42) -> None:
+def run_pipeline(mode: str = "real", seed: int = 42, processed_dir: str = "data/processed") -> None:
     """Executes the Phase 2 data pipeline."""
     print(f"==========================================")
     print(f"RUNNING PHASE 2 DATA PIPELINE [MODE: {mode.upper()}]")
@@ -55,7 +55,6 @@ def run_pipeline(mode: str = "real", seed: int = 42) -> None:
     print(f"Working Subset Conversation Overlap: {split_stats['subset_overlap_train_val'] + split_stats['subset_overlap_train_test'] + split_stats['subset_overlap_val_test']}")
 
     # Export processed CSVs
-    processed_dir = "data/processed"
     os.makedirs(processed_dir, exist_ok=True)
     os.makedirs("reports", exist_ok=True)
 

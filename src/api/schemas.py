@@ -13,6 +13,8 @@ class InquiryRequest(BaseModel):
     """Request payload for /api/v1/inquire endpoint."""
     customer_message: str = Field(..., min_length=1, description="Customer Twitter inquiry text")
     interaction_id: Optional[str] = Field(None, description="Optional unique interaction identifier")
+    conversation_id: Optional[str] = Field(None, description="Optional unique conversation identifier for multi-turn tracking")
+    conversation_history: Optional[List[Dict[str, str]]] = Field(None, description="Optional preceding turns list overriding server state")
 
 
 class EvidenceItem(BaseModel):
@@ -26,7 +28,9 @@ class EvidenceItem(BaseModel):
 class InquiryResponse(BaseModel):
     """Response payload for /api/v1/inquire endpoint."""
     interaction_id: str
+    conversation_id: Optional[str] = None
     customer_message: str
+    query_context_used: Optional[str] = None
     predicted_intent: str
     intent_confidence: float
     retrieval_top_k: int

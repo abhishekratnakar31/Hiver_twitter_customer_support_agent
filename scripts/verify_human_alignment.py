@@ -73,7 +73,17 @@ def compute_agreement_metrics(human_scores: np.ndarray, llm_scores: np.ndarray) 
     }
 
 
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Human/LLM Judge Alignment Verification")
+    parser.add_argument("--live", action="store_true", help="Enforce real LLM API evaluation (fails loudly if API key is missing)")
+    parser.add_argument("--mock", action="store_true", help="Run evaluation in explicit mock fallback mode")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     print("============================================================")
     print("HIVER PHASE 6: HUMAN / LLM JUDGE ALIGNMENT VERIFICATION")
     print("============================================================")
@@ -92,10 +102,21 @@ def main():
         assert len(overlap) == 0, f"DATA LEAKAGE WARNING: {len(overlap)} calibration examples overlap with Golden Set!"
         print("Verified zero overlap between human calibration dataset and Golden Set.")
 
-    # Detect LLM provider / API key
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY")
-    use_mock = not bool(api_key)
-    provider_str = "Real LLM API" if not use_mock else "Mock Fallback (ALLOW_MOCK_EVAL)"
+    if args.live:
+        if not api_key:
+            raise ValueError(
+                "CRITICAL ERROR: --live flag specified but GEMINI_API_KEY / OPENAI_API_KEY is missing from environment!\n"
+                "Silent fallback to mock mode is disabled under --live mode."
+            )
+        use_mock = False
+    elif args.mock:
+        use_mock = True
+    else:
+        allow_mock_env = os.environ.get("ALLOW_MOCK_EVAL", "0") == "1"
+        use_mock = allow_mock_env or not bool(api_key)
+
+    provider_str = "Real LLM API" if not use_mock else "Mock Fallback"
     print(f"Evaluator Provider Mode: [{provider_str}]")
 
     # Load retriever and models

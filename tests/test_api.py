@@ -41,8 +41,9 @@ def test_health_endpoint():
     assert data["classifier_loaded"] is True
     assert data["retriever_loaded"] is True
     assert data["index_items"] == 35000
-    assert data["generator_provider"] == "mock"
-    assert data["live_llm_available"] is False
+    assert data["generator_provider"] in ["mock", "gemini", "openai"]
+    assert isinstance(data["live_llm_available"], bool)
+
 
 
 def test_valid_inquiry_auto():

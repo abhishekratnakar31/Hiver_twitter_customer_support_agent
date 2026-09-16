@@ -80,14 +80,11 @@ def test_split_reproducibility(sample_raw_df):
     assert list(te1["interaction_id"]) == list(te2["interaction_id"])
 
 
-def test_run_pipeline_demo_mode():
-    try:
-        run_pipeline(mode="demo", seed=42)
-        assert os.path.exists("data/processed/train.csv")
-        assert os.path.exists("data/processed/validation.csv")
-        assert os.path.exists("data/processed/test.csv")
-        assert os.path.exists("data/processed/full_split_summary.json")
-        assert os.path.exists("reports/data_split.md")
-    finally:
-        # Restore real mode data split to prevent test pollution
-        run_pipeline(mode="real", seed=42)
+def test_run_pipeline_demo_mode(tmp_path):
+    demo_dir = str(tmp_path / "processed")
+    run_pipeline(mode="demo", seed=42, processed_dir=demo_dir)
+    assert os.path.exists(os.path.join(demo_dir, "train.csv"))
+    assert os.path.exists(os.path.join(demo_dir, "validation.csv"))
+    assert os.path.exists(os.path.join(demo_dir, "test.csv"))
+    assert os.path.exists(os.path.join(demo_dir, "full_split_summary.json"))
+    assert os.path.exists("reports/data_split.md")

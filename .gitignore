@@ -1,12 +1,46 @@
+# Environments & Dependencies
 .venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Python Cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Environment Variables & Secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Data & Model Binaries (Large Artifacts)
 data/raw/
+models/
+indexes/
+
+# Allow essential sample csvs and golden benchmark datasets
 *.csv
 !reports/brand_statistics.csv
 !data/processed/sample_conversations.csv
 !data/golden/*.csv
-models/
-indexes/
-.env
+
+# Logs & Temporary Files
+logs/
+*.log
+*.jsonl
+!data/golden/*.jsonl
+
+# System & IDE Junk
+.DS_Store
+.vscode/
+.idea/
+*.swp
