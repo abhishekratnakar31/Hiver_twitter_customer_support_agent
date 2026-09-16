@@ -17,7 +17,7 @@
                 </svg>
                 <div>
                     <h1>AmazonHelp AI Support Agent</h1>
-                    <p class="subtitle">Production Triage Engine & RAG Grounded Generation</p>
+                    <p class="subtitle">Production Triage Engine & Multi-Turn RAG Generator</p>
                 </div>
             </div>
             <div class="status-badges">
@@ -32,93 +32,115 @@
             </div>
         </header>
 
-        <!-- Main 4-Section Dashboard Grid -->
+        <!-- Main Dashboard Grid -->
         <main class="dashboard-grid">
-            <!-- 2. Customer Inquiry Panel -->
-            <section class="card inquiry-card">
+            <!-- Left Column: Thread Simulator -->
+            <section class="card simulator-card">
                 <div class="card-header">
-                    <h2>Customer Inquiry Intake</h2>
+                    <h2>Multi-Turn Thread Simulator</h2>
                     <span class="card-tag">Input</span>
                 </div>
-                <div class="preset-scenarios">
-                    <span class="preset-label">Test Scenarios:</span>
-                    <button class="preset-btn" onclick="loadPreset('tracking')">📦 Order Tracking</button>
-                    <button class="preset-btn" onclick="loadPreset('security')">🚨 Account Security</button>
-                    <button class="preset-btn" onclick="loadPreset('ambiguous')">❓ Ambiguous Query</button>
-                    <button class="preset-btn" onclick="loadPreset('billing')">💳 Billing Dispute</button>
+                
+                <div class="thread-meta">
+                    <span id="conversation-id-val">Conv ID: None</span>
+                    <span id="turn-count-val">Turns: 0</span>
+                    <button class="reset-btn" onclick="resetThread()">🔄 Reset Thread</button>
                 </div>
+
+                <div class="preset-scenarios">
+                    <span class="preset-label">Scenarios:</span>
+                    <button class="preset-btn" onclick="loadPreset('tracking')">📦 Tracking</button>
+                    <button class="preset-btn" onclick="loadPreset('security')">🚨 Security</button>
+                    <button class="preset-btn" onclick="loadPreset('ambiguous')">❓ Ambiguous</button>
+                    <button class="preset-btn" onclick="loadPreset('billing')">💳 Billing</button>
+                </div>
+
+                <!-- Chat History Window -->
+                <div class="chat-window" id="chat-window">
+                    <div class="chat-placeholder">Start a conversation by typing below...</div>
+                </div>
+
                 <div class="input-group">
-                    <textarea id="inquiry-text" placeholder="Enter customer Twitter message (e.g., Where is my order #12345?)..."></textarea>
+                    <textarea id="inquiry-text" placeholder="Enter customer Twitter message (e.g., Still waiting for an update!)..."></textarea>
                     <button id="analyze-btn" class="primary-btn" onclick="analyzeInquiry()">
-                        <span id="btn-text">Analyze Inquiry</span>
+                        <span id="btn-text">Send Message</span>
                         <div id="btn-spinner" class="spinner hidden"></div>
                     </button>
                 </div>
             </section>
 
-            <!-- 3. Triage Decision & Intent Card -->
-            <section class="card decision-card">
-                <div class="card-header">
-                    <h2>Escalation Triage Decision</h2>
-                    <span class="card-tag">Classification</span>
-                </div>
+            <!-- Right Column: Context & Output -->
+            <div class="right-column">
                 
-                <div id="decision-banner" class="decision-banner idle">
-                    <div class="decision-icon" id="decision-icon">⚡</div>
-                    <div>
-                        <h3 id="decision-title">Ready for Analysis</h3>
-                        <p id="decision-subtitle">Submit a customer inquiry to execute triage</p>
+                <!-- Triage Decision & Intent Card -->
+                <section class="card decision-card">
+                    <div class="card-header">
+                        <h2>Escalation Triage Decision</h2>
+                        <span class="card-tag">Classification</span>
                     </div>
-                </div>
-
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <span class="metric-label">Predicted Intent</span>
-                        <span class="metric-value" id="intent-val">--</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Intent Confidence</span>
-                        <div class="confidence-container">
-                            <span class="metric-value" id="confidence-val">--%</span>
-                            <div class="confidence-bar-bg">
-                                <div class="confidence-bar-fill" id="confidence-fill" style="width: 0%"></div>
-                            </div>
+                    
+                    <div id="decision-banner" class="decision-banner idle">
+                        <div class="decision-icon" id="decision-icon">⚡</div>
+                        <div>
+                            <h3 id="decision-title">Ready for Analysis</h3>
+                            <p id="decision-subtitle">Submit a customer inquiry to execute triage</p>
                         </div>
                     </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Escalation Reason</span>
-                        <span class="metric-value reason-tag" id="reason-val">none</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Top-1 Similarity ($S_{cos}$)</span>
-                        <span class="metric-value" id="similarity-val">--</span>
-                    </div>
-                </div>
-            </section>
 
-            <!-- 4. Retrieved Evidence & Response Output -->
-            <section class="card output-card">
-                <div class="card-header">
-                    <h2>Retrieved Evidence & Grounded Response</h2>
-                    <span class="card-tag">RAG Output</span>
-                </div>
-
-                <!-- Response Display -->
-                <div class="response-box">
-                    <h3>Generated Brand Response</h3>
-                    <div id="response-content" class="response-content placeholder">
-                        Response will appear here after inquiry execution...
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <span class="metric-label">Predicted Intent</span>
+                            <span class="metric-value" id="intent-val">--</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Intent Confidence</span>
+                            <div class="confidence-container">
+                                <span class="metric-value" id="confidence-val">--%</span>
+                                <div class="confidence-bar-bg">
+                                    <div class="confidence-bar-fill" id="confidence-fill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Escalation Reason</span>
+                            <span class="metric-value reason-tag" id="reason-val">none</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Top-1 Similarity ($S_{cos}$)</span>
+                            <span class="metric-value" id="similarity-val">--</span>
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Top-3 Evidence Accordion -->
-                <div class="evidence-section">
-                    <h3>Top-3 Historical Evidence Cases (FAISS 35k Index)</h3>
-                    <div id="evidence-list" class="evidence-list">
-                        <div class="empty-evidence">No evidence retrieved yet.</div>
+                <!-- Memory Context Inspector Card -->
+                <section class="card context-inspector-card">
+                    <div class="card-header">
+                        <h2>Memory Context Inspector</h2>
+                        <span class="card-tag">State</span>
                     </div>
-                </div>
-            </section>
+                    <p class="inspector-desc">This is the exact combined context payload fed to the backend RAG pipeline and Intent Classifier for the current turn.</p>
+                    <div class="context-box">
+                        <pre id="query-context-used" class="context-code-block">Waiting for first turn...</pre>
+                    </div>
+                </section>
+
+                <!-- Retrieved Evidence & Response Output -->
+                <section class="card output-card">
+                    <div class="card-header">
+                        <h2>Retrieved Evidence & Grounded Response</h2>
+                        <span class="card-tag">RAG Output</span>
+                    </div>
+
+                    <!-- Top-3 Evidence Accordion -->
+                    <div class="evidence-section">
+                        <h3>Top-3 Historical Evidence Cases (FAISS 35k Index)</h3>
+                        <div id="evidence-list" class="evidence-list">
+                            <div class="empty-evidence">No evidence retrieved yet.</div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
         </main>
     </div>
 

@@ -417,3 +417,101 @@ textarea:focus {
         grid-column: span 1;
     }
 }
+
+/* Chat Simulator Styles */
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.thread-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.reset-btn {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.reset-btn:hover {
+    color: var(--text-main);
+    border-color: var(--text-main);
+}
+.chat-window {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.chat-placeholder {
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    font-style: italic;
+}
+.chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 85%;
+}
+.chat-message.customer {
+    align-self: flex-end;
+}
+.chat-message.agent {
+    align-self: flex-start;
+}
+.message-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.message-content {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+.chat-message.customer .message-content {
+    background: var(--primary-color);
+    color: #0f172a;
+    border-bottom-right-radius: 2px;
+}
+.chat-message.agent .message-content {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    border-bottom-left-radius: 2px;
+}
+.inspector-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+.context-box {
+    background: #0f172a;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.context-code-block {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    white-space: pre-wrap;
+    word-break: break-all;
+}

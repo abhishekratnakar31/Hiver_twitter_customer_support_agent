@@ -12,9 +12,51 @@ const presets = {
     billing: "I was charged twice for my subscription this month."
 };
 
+let currentConversationId = null;
+let conversationHistory = [];
+
 document.addEventListener("DOMContentLoaded", () => {
     checkHealth();
+    resetThread();
 });
+
+function generateId() {
+    return 'conv_' + Math.random().toString(36).substr(2, 9);
+}
+
+function resetThread() {
+    currentConversationId = generateId();
+    conversationHistory = [];
+    document.getElementById("conversation-id-val").textContent = `Conv ID: ${currentConversationId}`;
+    document.getElementById("turn-count-val").textContent = `Turns: 0`;
+    
+    const chatWindow = document.getElementById("chat-window");
+    chatWindow.innerHTML = '<div class="chat-placeholder">Start a conversation by typing below...</div>';
+    
+    document.getElementById("query-context-used").textContent = "Waiting for first turn...";
+    
+    // Reset inputs
+    document.getElementById("inquiry-text").value = "";
+    
+    // Reset cards
+    resetCards();
+}
+
+function resetCards() {
+    const banner = document.getElementById("decision-banner");
+    banner.className = "decision-banner idle";
+    document.getElementById("decision-icon").textContent = "⚡";
+    document.getElementById("decision-title").textContent = "Ready for Analysis";
+    document.getElementById("decision-subtitle").textContent = "Submit a customer inquiry to execute triage";
+
+    document.getElementById("intent-val").textContent = "--";
+    document.getElementById("confidence-val").textContent = "--%";
+    document.getElementById("confidence-fill").style.width = "0%";
+    document.getElementById("reason-val").textContent = "none";
+    document.getElementById("similarity-val").textContent = "--";
+
+    document.getElementById("evidence-list").innerHTML = '<div class="empty-evidence">No evidence retrieved yet.</div>';
+}
 
 async function checkHealth() {
     const statusText = document.getElementById("api-status-text");
@@ -45,6 +87,31 @@ function loadPreset(type) {
     }
 }
 
+function appendToChat(role, text) {
+    const chatWindow = document.getElementById("chat-window");
+    const placeholder = chatWindow.querySelector(".chat-placeholder");
+    if (placeholder) {
+        placeholder.remove();
+    }
+    
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `chat-message ${role}`;
+    
+    const label = document.createElement("div");
+    label.className = "message-role";
+    label.textContent = role === "customer" ? "Customer" : "Agent";
+    
+    const content = document.createElement("div");
+    content.className = "message-content";
+    content.textContent = text;
+    
+    msgDiv.appendChild(label);
+    msgDiv.appendChild(content);
+    
+    chatWindow.appendChild(msgDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
 async function analyzeInquiry() {
     const textarea = document.getElementById("inquiry-text");
     const query = textarea.value.trim();
@@ -55,14 +122,25 @@ async function analyzeInquiry() {
 
     const btnText = document.getElementById("btn-text");
     const btnSpinner = document.getElementById("btn-spinner");
-    btnText.textContent = "Analyzing...";
+    btnText.textContent = "Sending...";
     btnSpinner.classList.remove("hidden");
+
+    // Add customer message to UI and history
+    appendToChat("customer", query);
+    textarea.value = "";
+    
+    // Prepare payload
+    const payload = {
+        customer_message: query,
+        conversation_id: currentConversationId,
+        conversation_history: conversationHistory
+    };
 
     try {
         const resp = await fetch(`${API_BASE}/api/v1/inquire`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ customer_message: query })
+            body: JSON.stringify(payload)
         });
 
         if (!resp.ok) {
@@ -71,12 +149,32 @@ async function analyzeInquiry() {
         }
 
         const data = await resp.json();
+        
+        // Push customer message to history now that it's successfully processed
+        conversationHistory.push({ role: "customer", content: query });
+        
+        // Display AI response
+        if (data.decision === "AUTO") {
+            const reply = data.generated_response || "No reply generated.";
+            appendToChat("agent", reply);
+            conversationHistory.push({ role: "agent", content: reply });
+        } else {
+            appendToChat("agent", "[HALTED - Ticket escalated to human support queue]");
+        }
+        
+        document.getElementById("turn-count-val").textContent = `Turns: ${Math.floor(conversationHistory.length / 2)}`;
+        
         updateUI(data);
 
     } catch (e) {
         alert(`Inquiry Analysis Error: ${e.message}`);
+        // Remove the optimistically added message
+        const chatWindow = document.getElementById("chat-window");
+        if (chatWindow.lastChild) {
+            chatWindow.removeChild(chatWindow.lastChild);
+        }
     } finally {
-        btnText.textContent = "Analyze Inquiry";
+        btnText.textContent = "Send Message";
         btnSpinner.classList.add("hidden");
     }
 }
@@ -108,14 +206,12 @@ function updateUI(data) {
     document.getElementById("reason-val").textContent = data.escalation_reason;
     document.getElementById("similarity-val").textContent = data.retrieval_similarity.toFixed(4);
 
-    // 3. Update Response Content
-    const responseBox = document.getElementById("response-content");
-    if (data.decision === "AUTO") {
-        responseBox.className = "response-content";
-        responseBox.textContent = data.generated_response || "No reply generated.";
+    // 3. Update Memory Context Inspector
+    const contextBox = document.getElementById("query-context-used");
+    if (data.query_context_used) {
+        contextBox.textContent = data.query_context_used;
     } else {
-        responseBox.className = "response-content halted";
-        responseBox.textContent = "[HALTED - Ticket escalated to human support queue]";
+        contextBox.textContent = "No context provided.";
     }
 
     // 4. Update Top-3 RAG Evidence List
