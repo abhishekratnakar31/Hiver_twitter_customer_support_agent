@@ -24,7 +24,7 @@ htmlcov/
 
 # Data & Model Binaries (Large Artifacts)
 data/raw/
-models/
+/models/
 indexes/
 
 # Allow essential sample csvs and golden benchmark datasets
