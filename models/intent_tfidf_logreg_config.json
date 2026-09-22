@@ -1,0 +1,24 @@
+{
+  "model_type": "TfidfLogisticClassifier",
+  "c_param": 10.0,
+  "validation_macro_f1": 0.8724171125308362,
+  "vocab_size": 84933,
+  "num_classes": 11,
+  "classes": [
+    "account_security_access",
+    "cancellation_modification",
+    "digital_technical_support",
+    "feedback_general_complaint",
+    "order_tracking_delivery",
+    "other_unclear",
+    "package_missing_damaged",
+    "payment_billing_issues",
+    "prime_subscription_membership",
+    "product_inquiry_availability",
+    "refund_return_processing"
+  ],
+  "train_samples": 35000,
+  "validation_samples": 7503,
+  "random_state": 42,
+  "created_at": "2026-09-22 17:44:32"
+}

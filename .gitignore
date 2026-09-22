@@ -24,7 +24,6 @@ htmlcov/
 
 # Data & Model Binaries (Large Artifacts)
 data/raw/
-/models/
 indexes/
 
 # Allow essential sample csvs, processed data, and model artifacts
