@@ -26,14 +26,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Verify source package
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          root = Path.cwd()
+          print("Working directory:", root)
+          print("src/models exists:", (root / "src/models").exists())
+          print("src/models/agent.py exists:", (root / "src/models/agent.py").exists())
+
+          import src.models
+          from src.models.agent import TwitterSupportAgent
+
+          print("src.models import: OK")
+          print("TwitterSupportAgent import: OK")
+          PY
+
       - name: Run Pytest suite
         env:
+          PYTHONPATH: ${{ github.workspace }}
           TOKENIZERS_PARALLELISM: "false"
           LOKY_MAX_CPU_COUNT: "1"
           OMP_NUM_THREADS: "1"
           KMP_DUPLICATE_LIB_OK: "TRUE"
         run: |
-          pytest tests/
+          python -m pytest tests/
 
       - name: Build Docker image
         run: |
