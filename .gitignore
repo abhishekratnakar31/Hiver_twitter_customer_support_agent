@@ -27,11 +27,12 @@ data/raw/
 /models/
 indexes/
 
-# Allow essential sample csvs and golden benchmark datasets
+# Allow essential sample csvs, processed data, and model artifacts
 *.csv
 !reports/brand_statistics.csv
-!data/processed/sample_conversations.csv
+!data/processed/*.csv
 !data/golden/*.csv
+!models/*
 
 # Logs & Temporary Files
 logs/

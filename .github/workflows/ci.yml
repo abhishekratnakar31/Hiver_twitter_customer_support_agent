@@ -26,6 +26,36 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Prepare CI data and model artifacts
+        run: |
+          set -eux
+
+          python scripts/prepare_data.py --source real
+          python scripts/build_golden_set.py
+          python scripts/finalize_golden_set.py
+          python scripts/train_baselines.py
+          python scripts/build_escalation_calibration.py
+
+          required_files=(
+            data/processed/train.csv
+            data/processed/validation.csv
+            data/processed/test.csv
+            data/processed/test_pool.csv
+            data/golden/annotation_template.csv
+            data/golden/golden_set.csv
+            reports/golden_set_profile.md
+            models/intent_tfidf_logreg.joblib
+            models/rag_faiss.index
+            models/rag_metadata.json
+          )
+
+          for file in "${required_files[@]}"; do
+            test -f "$file" || {
+              echo "::error file=$file::Required CI artifact is missing"
+              exit 1
+            }
+          done
+
       - name: Verify source package
         run: |
           python - <<'PY'
