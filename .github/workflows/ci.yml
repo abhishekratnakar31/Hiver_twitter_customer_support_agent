@@ -100,5 +100,4 @@ jobs:
       - name: Stop and cleanup container
         if: always()
         run: |
-          docker stop agent-container || true
-          docker rm agent-container || true
+          docker rm -f agent-container 2>/dev/null || true

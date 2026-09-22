@@ -92,13 +92,9 @@ def get_agent() -> TwitterSupportAgent:
         force_mock = os.environ.get("MOCK_LLM", "0") == "1"
         use_mock = force_mock or (not has_api_key)
 
-        try:
-            agent = TwitterSupportAgent.load_from_models_dir(models_dir=models_dir, mock_llm=use_mock)
-            mode_str = "Mock Mode" if use_mock else "LIVE LLM API Mode"
-            print(f"[FastAPI Server] TwitterSupportAgent loaded successfully ({mode_str}) from {models_dir}.")
-        except Exception as e:
-            print(f"[FastAPI Server Warning] Could not load from {models_dir}: {e}")
-            agent = TwitterSupportAgent()
+        agent = TwitterSupportAgent.load_from_models_dir(models_dir=models_dir, mock_llm=use_mock)
+        mode_str = "Mock Mode" if use_mock else "LIVE LLM API Mode"
+        print(f"[FastAPI Server] TwitterSupportAgent loaded successfully ({mode_str}) from {models_dir}.")
     return agent
 
 

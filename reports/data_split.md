@@ -4,7 +4,7 @@
 - **Execution Mode**: `DEMO`
 - **Random Seed**: `42`
 - **Source File**: `data/raw/twcs_demo.csv`
-- **Processed Target Directory**: `/private/var/folders/43/skj2qk7x5rb85vwhdbt4qwhc0000gn/T/pytest-of-abhishekratnakar/pytest-28/test_run_pipeline_demo_mode0/processed`
+- **Processed Target Directory**: `/private/var/folders/43/skj2qk7x5rb85vwhdbt4qwhc0000gn/T/pytest-of-abhishekratnakar/pytest-2/test_run_pipeline_demo_mode0/processed`
 
 ---
 
