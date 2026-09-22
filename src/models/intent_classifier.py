@@ -94,7 +94,13 @@ class TfidfLogisticClassifier:
 
     @classmethod
     def load(cls, model_path):
-        artifact = joblib.load(model_path)
+        path = Path(model_path)
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"Intent classifier artifact not found: {path}. "
+                "Run the data/model preparation step first."
+            )
+        artifact = joblib.load(path)
         instance = cls(
             c_param=artifact["c_param"],
             ngram_range=artifact["ngram_range"],

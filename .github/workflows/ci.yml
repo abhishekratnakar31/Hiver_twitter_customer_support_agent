@@ -36,25 +36,7 @@ jobs:
           python scripts/train_baselines.py
           python scripts/build_escalation_calibration.py
 
-          required_files=(
-            data/processed/train.csv
-            data/processed/validation.csv
-            data/processed/test.csv
-            data/processed/test_pool.csv
-            data/golden/annotation_template.csv
-            data/golden/golden_set.csv
-            reports/golden_set_profile.md
-            models/intent_tfidf_logreg.joblib
-            models/rag_faiss.index
-            models/rag_metadata.json
-          )
-
-          for file in "${required_files[@]}"; do
-            test -f "$file" || {
-              echo "::error file=$file::Required CI artifact is missing"
-              exit 1
-            }
-          done
+          python scripts/prepare_ci.py
 
       - name: Verify source package
         run: |
